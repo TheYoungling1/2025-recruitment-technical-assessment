@@ -92,11 +92,51 @@ function isValidCharacter(char) {
 
 // [TASK 2] ====================================================================
 // Endpoint that adds a CookbookEntry to your magical cookbook
-app.post("/entry", (req:Request, res:Response) => {
-  // TODO: implement me
-  res.status(500).send("not yet implemented!")
+app.post("/entry", (req: Request, res: Response) => {
+  const entry: cookbookEntry = req.body;
 
+  if (!validEntry(entry)) {
+    return res.status(400).send("Invalid entry");
+  }
+
+  cookbook.push(entry);
+  res.status(200).json({});
 });
+
+const validEntry = (entry: cookbookEntry): Boolean => {
+
+  if (entry.type.toLowerCase() != "recipe" && entry.type.toLowerCase() != "ingredient") {
+    return false;
+  }
+
+  // If entry is an ingredient, cookTime must be >= 0
+  if (isIngredient(entry)) {
+    return entry.cookTime >= 0;
+  }
+  
+  // If entry is a recipe, must have more than one required ingredient
+  if (isRecipe(entry)) {
+    return entry.requiredItems.length >= 0;
+  }
+
+  const uniqueName = cookbook.find((name : string) => name === entry.name);
+  if (!uniqueName) {
+    return false;
+  }
+
+  return true;;
+}
+
+// Typeguard check function that ensures that this entry is an ingredient
+function isIngredient(entry: cookbookEntry): entry is ingredient {
+  return "cookTime" in entry;
+}
+
+// Typeguard check function that ensures that this entry is a recuipe
+function isRecipe(entry: cookbookEntry): entry is recipe {
+  return "requiredItems" in entry;
+}
+
 
 // [TASK 3] ====================================================================
 // Endpoint that returns a summary of a recipe that corresponds to a query name
