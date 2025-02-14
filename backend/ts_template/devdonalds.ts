@@ -44,7 +44,7 @@ app.post("/parse", (req:Request, res:Response) => {
 
 // [TASK 1] ====================================================================
 // Takes in a recipeName and returns it in a form that 
-const parse_handwriting = (recipeName: string): string | null => {
+const parse_handwriting = (recipeName) => {
   // TODO: implement me
   
   if (recipeName == null) {
@@ -52,22 +52,42 @@ const parse_handwriting = (recipeName: string): string | null => {
   }
 
   // Have 2 pointers to keep track of the current and previous element in the string
-  let stringProcessed: string = "";
-  for (let i = 1; i < recipeName.length; i++) {
+  let stringProcessed = "";
+
+
+  for (let i = 0; i < recipeName.length - 1; i++) {
     // References the previous element in the string
-    let j = i - 1; 
-    if (isValidCharacter(recipeName.charAt(j))) {
+    if (isValidCharacter(recipeName.charAt(i))) {
       // Appending the valid characters to the empty string
-      stringProcessed += recipeName.charAt(j); 
+      stringProcessed += recipeName.charAt(i).toLowerCase(); 
     }
+  }
+  // Replaces hypens and underscores with spaces
+  stringProcessed = stringProcessed.replace(/[-_]/g, " ");
+  stringProcessed = stringProcessed.trim();
+  stringProcessed = stringProcessed.replace(/\s+/g, " ");
+
+  // Split each word in the string by space
+  let splitWords = stringProcessed.split(" ");
+
+  for (let i = 0; i < splitWords.length; i++) {
+    // Capitalise each individual word and recombine they with the rest of the string
+    splitWords[i] = splitWords[i].charAt(0).toUpperCase() + splitWords[i].slice(1);
+  }
+
+  // re-join all the words by 1 space
+  stringProcessed = splitWords.join(" ");
+
+  if (stringProcessed.length <= 0) {
+    return null;
   }
 
   return stringProcessed;
 }
 
 // Helper function to determine if a character is valid in the recipe name
-function isValidCharacter(char: string): boolean {
-  return /^[a-zA-Z ]$/.test(char);
+function isValidCharacter(char) {
+  return /^[a-zA-Z ]$/.test(char) || char == '-' || char == '_';
 }
 
 // [TASK 2] ====================================================================
