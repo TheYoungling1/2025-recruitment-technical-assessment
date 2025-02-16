@@ -1,9 +1,11 @@
 {
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node devdonalds.ts"
+    "start": "ts-node devdonalds.ts",
+    "lint": "eslint"
   },
   "dependencies": {
+    "eslint": "^9.20.1",
     "express": "^4.21.2",
     "jest": "^29.7.0"
   },

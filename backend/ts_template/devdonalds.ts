@@ -49,10 +49,9 @@ const parse_handwriting = (recipeName) => {
   if (recipeName == null) {
     return null
   }
-
-  // Have 2 pointers to keep track of the current and previous element in the string
+  
+  // Intialise the string as empty
   let stringProcessed = "";
-
 
   for (let i = 0; i < recipeName.length; i++) {
     // References the previous element in the string
@@ -61,9 +60,12 @@ const parse_handwriting = (recipeName) => {
       stringProcessed += recipeName.charAt(i).toLowerCase(); 
     }
   }
+
   // Replaces hypens and underscores with spaces
   stringProcessed = stringProcessed.replace(/[-_]/g, " ");
+  // Remove any spaces before and after the valid characters
   stringProcessed = stringProcessed.trim();
+  // Removes multiple spaces within the string and replaces it with one
   stringProcessed = stringProcessed.replace(/\s+/g, " ");
 
   // Split each word in the string by space
@@ -74,9 +76,10 @@ const parse_handwriting = (recipeName) => {
     splitWords[i] = splitWords[i].charAt(0).toUpperCase() + splitWords[i].slice(1);
   }
 
-  // re-join all the words by 1 space
+  // Re-join all the words by 1 space
   stringProcessed = splitWords.join(" ");
 
+  // If the resulting word is empty
   if (stringProcessed.length <= 0) {
     return null;
   }
@@ -94,12 +97,15 @@ function isValidCharacter(char) {
 app.post("/entry", (req: Request, res: Response) => {
   const entry: cookbookEntry = req.body;
   
+  // Statuscode 400 for invalid
   if (!validEntry(entry)) {
     return res.status(400).send("Invalid entry");
   }
 
+  // Clean up the recipe name entered using function from part 1
   entry.name = parse_handwriting(entry.name);
   cookbook.push(entry);
+  console.log(cookbook);
   res.status(200).json({});
 });
 
@@ -109,6 +115,7 @@ const validEntry = (entry: cookbookEntry): Boolean => {
     return false;
   }
 
+  // All entry must be either a recipe or an ingredient
   if (entry.type.toLowerCase() != "recipe" && entry.type.toLowerCase() != "ingredient") {
     return false;
   }
@@ -118,20 +125,18 @@ const validEntry = (entry: cookbookEntry): Boolean => {
     return false;
   }
   
-  // If entry is a recipe, must have more than one required ingredient
+  // If entry is a recipe
   if (isRecipe(entry)) {
-    // Create a new array filled with extracted name field values of entries
+    // Create a new array of extracted name string from the recipe's required items
     const names = entry.requiredItems.map(item => item.name.toLowerCase());
-    console.log(names)
     // A set includes all the unique values in the array
     const hasDuplicates = new Set(names).size === entry.requiredItems.length;
-    // I.e. there are repeated elements in the cookbook array
+    // If there are repeated required elements in the recipe
     if (!hasDuplicates) {
       return false;
     }
   }
   
-
   const uniqueName = cookbook.find((existingentry) => existingentry.name.toLowerCase() === entry.name.toLowerCase());
   // If this name already exists in the array of entries
   if (uniqueName) {
