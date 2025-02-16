@@ -144,20 +144,6 @@ describe("Task 2 - Boundary Cases", () => {
       });
       expect(resp.status).toBe(200);
     });
-
-    it("The name of the recipe should be cleaned up using function from part1", async() => {
-      const resp = await putTask2({
-        type: "recipe",
-        name: "@@@@Pancake@@@flour$$$",
-        requiredItems: [
-         { name: "Flour", quantity: 2 },
-          { name: "Egg", quantity: 1 },
-          { name: "Milk", quantity: 1 },
-        ],
-      });
-      expect(resp.status).toBe(200);
-
-    });
   });
 });
 

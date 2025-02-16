@@ -98,7 +98,7 @@ app.post("/entry", (req: Request, res: Response) => {
   const entry: cookbookEntry = req.body;
   
   // Statuscode 400 for invalid
-  if (!validEntry(entry)) {
+  if (!validEntry(entry) || entry === null) {
     return res.status(400).send("Invalid entry");
   }
 
@@ -110,7 +110,7 @@ app.post("/entry", (req: Request, res: Response) => {
 });
 
 const validEntry = (entry: cookbookEntry): Boolean => {
-  // If the name field is empty
+  // If the name field is empty or filled with invalid characters listed in step 1
   if (parse_handwriting(entry.name) == null) {
     return false;
   }
