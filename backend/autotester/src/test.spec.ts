@@ -1,3 +1,4 @@
+
 const request = require("supertest");
 
 describe("Task 1", () => {
@@ -41,76 +42,125 @@ describe("Task 1", () => {
   });
 });
 
-describe("Task 2", () => {
+describe("Task 2 - Boundary Cases", () => {
   describe("POST /entry", () => {
     const putTask2 = async (data) => {
       return await request("http://localhost:8080").post("/entry").send(data);
     };
 
-    it("Add Ingredients", async () => {
-      const entries = [
-        { type: "ingredient", name: "Egg", cookTime: 6 },
-        { type: "ingredient", name: "Lettuce", cookTime: 1 },
-      ];
-      for (const entry of entries) {
-        const resp = await putTask2(entry);
-        expect(resp.status).toBe(200);
-        expect(resp.body).toStrictEqual({});
-      }
-    });
-
-    it("Add Recipe", async () => {
-      const meatball = {
-        type: "recipe",
-        name: "Meatball",
-        requiredItems: [{ name: "Beef", quantity: 1 }],
-      };
-      const resp1 = await putTask2(meatball);
-      expect(resp1.status).toBe(200);
-    });
-
-    it("Congratulations u burnt the pan pt2", async () => {
+    it("Boundary: Just below valid cookTime (-1)", async () => {
       const resp = await putTask2({
         type: "ingredient",
-        name: "beef",
+        name: "Invalid Meat",
         cookTime: -1,
       });
       expect(resp.status).toBe(400);
     });
 
-    it("Congratulations u burnt the pan pt3", async () => {
+    it("Boundary: Recipe with exactly 1 requiredItem", async () => {
       const resp = await putTask2({
-        type: "pan",
-        name: "pan",
-        cookTime: 20,
+        type: "recipe",
+        name: "Basic Toast",
+        requiredItems: [{ name: "Bread", quantity: 1 }],
+      });
+      expect(resp.status).toBe(200);
+    });
+
+    it("Boundary: Adding a recipe with a requiredItem that has duplicate names (should fail)", async () => {
+      const resp = await putTask2({
+        type: "recipe",
+        name: "Double Cheese",
+        requiredItems: [
+          { name: "Cheese", quantity: 1 },
+          { name: "Cheese", quantity: 2 },
+        ],
       });
       expect(resp.status).toBe(400);
     });
 
-    it("Unique names", async () => {
+    it("Boundary: Adding an entry with an empty string as name (should fail)", async () => {
       const resp = await putTask2({
         type: "ingredient",
-        name: "Beef",
-        cookTime: 10,
+        name: "",
+        cookTime: 5,
+      });
+      expect(resp.status).toBe(400);
+    });
+
+    it("Boundary: Adding a duplicate entry with different cookTime (should fail)", async () => {
+      await putTask2({
+        type: "ingredient",
+        name: "Salt",
+        cookTime: 1,
+      });
+
+      const resp = await putTask2({
+        type: "ingredient",
+        name: "Salt",
+        cookTime: 5,
+      });
+      expect(resp.status).toBe(400);
+    });
+
+    it("Boundary: Adding a duplicate entry but as a different type (should fail)", async () => {
+      await putTask2({
+        type: "ingredient",
+        name: "Olive Oil",
+        cookTime: 1,
+      });
+
+      const resp = await putTask2({
+        type: "recipe",
+        name: "Olive Oil",
+        requiredItems: [{ name: "Olives", quantity: 5 }],
+      });
+      expect(resp.status).toBe(400);
+    });
+
+    it("Boundary: Case-insensitive duplicate check (should fail)", async () => {
+      await putTask2({
+        type: "ingredient",
+        name: "Sugar",
+        cookTime: 2,
+      });
+
+      const resp = await putTask2({
+        type: "ingredient",
+        name: "sugar",
+        cookTime: 4,
+      });
+      expect(resp.status).toBe(400);
+    });
+
+    it("Boundary: Adding a valid recipe with multiple required items", async () => {
+      const resp = await putTask2({
+        type: "recipe",
+        name: "Pancake",
+        requiredItems: [
+         { name: "Flour", quantity: 2 },
+          { name: "Egg", quantity: 1 },
+          { name: "Milk", quantity: 1 },
+        ],
+      });
+      expect(resp.status).toBe(200);
+    });
+
+    it("The name of the recipe should be cleaned up using function from part1", async() => {
+      const resp = await putTask2({
+        type: "recipe",
+        name: "@@@@Pancake@@@flour$$$",
+        requiredItems: [
+         { name: "Flour", quantity: 2 },
+          { name: "Egg", quantity: 1 },
+          { name: "Milk", quantity: 1 },
+        ],
       });
       expect(resp.status).toBe(200);
 
-      const resp2 = await putTask2({
-        type: "ingredient",
-        name: "Beef",
-        cookTime: 8,
-      });
-      expect(resp2.status).toBe(400);
-
-      const resp3 = await putTask2({
-        type: "recipe",
-        name: "Beef",
-        cookTime: 8,
-      });
-      expect(resp3.status).toBe(400);
     });
   });
 });
+
 
 describe("Task 3", () => {
   describe("GET /summary", () => {

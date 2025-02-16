@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json());
 
 // Store your recipes here!
-const cookbook: any = null;
+const cookbook: cookbookEntry[] = [];
 
 // Task 1 helper (don't touch)
 app.post("/parse", (req:Request, res:Response) => {
@@ -93,37 +93,52 @@ function isValidCharacter(char) {
 // Endpoint that adds a CookbookEntry to your magical cookbook
 app.post("/entry", (req: Request, res: Response) => {
   const entry: cookbookEntry = req.body;
-
+  
   if (!validEntry(entry)) {
     return res.status(400).send("Invalid entry");
   }
 
+  entry.name = parse_handwriting(entry.name);
   cookbook.push(entry);
   res.status(200).json({});
 });
 
 const validEntry = (entry: cookbookEntry): Boolean => {
+  // If the name field is empty
+  if (parse_handwriting(entry.name) == null) {
+    return false;
+  }
 
   if (entry.type.toLowerCase() != "recipe" && entry.type.toLowerCase() != "ingredient") {
     return false;
   }
 
   // If entry is an ingredient, cookTime must be >= 0
-  if (isIngredient(entry)) {
-    return entry.cookTime >= 0;
+  if (isIngredient(entry) && entry.cookTime < 0) {
+    return false;
   }
   
   // If entry is a recipe, must have more than one required ingredient
   if (isRecipe(entry)) {
-    return entry.requiredItems.length >= 0;
+    // Create a new array filled with extracted name field values of entries
+    const names = entry.requiredItems.map(item => item.name.toLowerCase());
+    console.log(names)
+    // A set includes all the unique values in the array
+    const hasDuplicates = new Set(names).size === entry.requiredItems.length;
+    // I.e. there are repeated elements in the cookbook array
+    if (!hasDuplicates) {
+      return false;
+    }
   }
+  
 
-  const uniqueName = cookbook.find((name : string) => name === entry.name);
-  if (!uniqueName) {
+  const uniqueName = cookbook.find((existingentry) => existingentry.name.toLowerCase() === entry.name.toLowerCase());
+  // If this name already exists in the array of entries
+  if (uniqueName) {
     return false;
   }
 
-  return true;;
+  return true;
 }
 
 // Typeguard check function that ensures that this entry is an ingredient
