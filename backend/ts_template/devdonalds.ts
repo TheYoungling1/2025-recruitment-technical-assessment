@@ -46,7 +46,6 @@ app.post("/parse", (req:Request, res:Response) => {
 // Takes in a recipeName and returns it in a form that 
 const parse_handwriting = (recipeName) => {
   // TODO: implement me
-  
   if (recipeName == null) {
     return null
   }
@@ -55,7 +54,7 @@ const parse_handwriting = (recipeName) => {
   let stringProcessed = "";
 
 
-  for (let i = 0; i < recipeName.length - 1; i++) {
+  for (let i = 0; i < recipeName.length; i++) {
     // References the previous element in the string
     if (isValidCharacter(recipeName.charAt(i))) {
       // Appending the valid characters to the empty string

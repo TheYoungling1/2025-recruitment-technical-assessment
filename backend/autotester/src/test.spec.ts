@@ -22,6 +22,22 @@ describe("Task 1", () => {
       const response = await getTask1("");
       expect(response.status).toBe(400);
     });
+
+    it("should handle names with only spaces", async () => {
+      const response = await getTask1("      ");
+      expect(response.status).toBe(400);
+    });
+
+    it("should remove excessive spaces and properly format", async () => {
+      const response = await getTask1("  cHeeSe   bUrGEr    ");
+      expect(response.body).toStrictEqual({ msg: "Cheese Burger" });
+    });
+
+    it("should captitalise the only remaining letter", async() => {
+      const response = await getTask1("@e)))))");
+      expect(response.body).toStrictEqual({ msg: "E"});
+    });
+
   });
 });
 
